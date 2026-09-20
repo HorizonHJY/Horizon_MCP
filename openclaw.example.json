@@ -1,0 +1,15 @@
+{
+  "_comment": "MCP client entry for OpenClaw. stdio: OpenClaw launches the server as a subprocess; no port, no TLS. Adjust the key name to whatever OpenClaw's config expects for MCP servers.",
+  "mcpServers": {
+    "horizon": {
+      "command": "/home/ec2-user/Horizon_MCP/.venv/bin/python",
+      "args": ["-m", "horizon_mcp"],
+      "cwd": "/home/ec2-user/Horizon_MCP",
+      "env": {
+        "HORIZON_DB_PATH": "/home/ec2-user/Horisation/_data/market.db",
+        "HORIZON_EXPORT_DIR": "/home/ec2-user/horizon-exports",
+        "HORIZON_EXPORT_MAX_ROWS": "5000"
+      }
+    }
+  }
+}

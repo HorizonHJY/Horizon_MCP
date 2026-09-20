@@ -1,0 +1,26 @@
+[project]
+name = "horizon-mcp"
+version = "0.1.0"
+description = "MCP server for the Arch Bay (Horisation) site — tools an agent can call against the live server."
+requires-python = ">=3.10"
+dependencies = [
+    # 2.x renamed FastMCP to MCPServer; pin the major so the next rename is a
+    # deliberate upgrade, not a broken deploy.
+    "mcp>=2,<3",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[project.scripts]
+horizon-mcp = "horizon_mcp.server:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["horizon_mcp*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

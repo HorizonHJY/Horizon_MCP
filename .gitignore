@@ -1,0 +1,25 @@
+# Secrets and local config — never in git
+.env
+.env.*
+!.env.example
+
+# Anything the tools produce
+exports/
+*.csv
+*.json.export
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+
+# Editors
+.idea/
+.vscode/
+*.swp
+.DS_Store
