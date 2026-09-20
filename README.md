@@ -21,6 +21,12 @@ WhatsApp → OpenClaw ──(stdio subprocess)──▶ horizon-mcp ──(read-
 details) and `session` (live tokens). The database is opened `mode=ro`, so a
 tool cannot write to it even by mistake.
 
+## Install
+
+**Installing on the server? Follow [INSTALL.md](INSTALL.md)** — it is written for
+the agent doing the install, with a check after every step and a WhatsApp
+acceptance test at the end.
+
 ## Deploy (first time, on the server)
 
 ```bash
