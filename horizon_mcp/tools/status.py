@@ -10,11 +10,11 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from pathlib import Path
 
-from .. import config, db
+from .. import config, db, snapshot
 
 
 def db_status(*, db_path: Path | None = None) -> dict:
-    path = db_path or config.DB_PATH
+    path = db_path or snapshot.ensure_db()
     if not path.is_file():
         return {"ok": False, "path": str(path), "error": "database file not found"}
 
@@ -24,6 +24,7 @@ def db_status(*, db_path: Path | None = None) -> dict:
 
     return {
         "ok": True,
+        "source": "local" if db_path else snapshot.source_description(),
         "path": str(path),
         "bytes": stat.st_size,
         "modified": datetime.fromtimestamp(stat.st_mtime, tz=timezone.utc).isoformat(timespec="seconds"),

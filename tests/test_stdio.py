@@ -62,7 +62,7 @@ def test_full_chain_over_stdio(params):
                 assert init.server_info.name == "horizon"
 
                 tools = {t.name for t in (await s.list_tools()).tools}
-                assert tools == {"db_status", "list_tables", "export_data"}
+                assert tools == {"db_status", "list_tables", "export_data", "refresh_data"}
 
                 st = _result(await s.call_tool("db_status", {}))
                 assert st["ok"] and st["tables"] == 1     # `user` not counted

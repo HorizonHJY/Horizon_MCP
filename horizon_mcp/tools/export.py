@@ -12,7 +12,7 @@ import re
 from datetime import datetime, timezone
 from pathlib import Path
 
-from .. import config, db
+from .. import config, db, snapshot
 
 FORMATS = ("csv", "json")
 _SAFE = re.compile(r"[^A-Za-z0-9_.-]+")
@@ -45,7 +45,7 @@ def export_table(
     cap = config.EXPORT_MAX_ROWS
     n = cap if limit is None else max(1, min(int(limit), cap))
 
-    with db.connect(db_path or config.DB_PATH) as conn:
+    with db.connect(db_path or snapshot.ensure_db()) as conn:
         name = db.resolve_table(conn, table)
         columns, rows = db.fetch_rows(conn, name, since=since, until=until, limit=n)
 

@@ -1,8 +1,15 @@
 """Runtime configuration, from the environment only.
 
-Nothing here is read from the repo. On the server the values come from a .env
-file next to the checkout (see .env.example) that OpenClaw loads before it
-launches the server, or from the service environment if run under systemd.
+Nothing here is read from the repo. The values come from a .env file next to
+the checkout (see .env.example) that is loaded below, or from the process
+environment OpenClaw sets when it launches the server — the environment wins.
+
+Two deployments share this file:
+
+  on the server itself     HORIZON_DB_PATH points at the live database
+  on the Mac with OpenClaw HORIZON_DB_SSH names the server and remote path;
+                           HORIZON_DB_PATH is then where the pulled snapshot
+                           lives locally
 """
 
 import os
@@ -30,6 +37,15 @@ def _load_dotenv() -> None:
 
 _load_dotenv()
 
-DB_PATH = Path(os.environ.get("HORIZON_DB_PATH", "/home/ec2-user/Horisation/_data/market.db"))
-EXPORT_DIR = Path(os.environ.get("HORIZON_EXPORT_DIR", "/home/ec2-user/horizon-exports"))
+# `host:/remote/path`. Empty means the database is a local file.
+DB_SSH = os.environ.get("HORIZON_DB_SSH", "").strip()
+
+DB_PATH = Path(os.environ.get(
+    "HORIZON_DB_PATH",
+    "~/horizon-exports/market.snapshot.db" if DB_SSH else "/home/ec2-user/Horisation/_data/market.db",
+)).expanduser()
+EXPORT_DIR = Path(os.environ.get("HORIZON_EXPORT_DIR", "~/horizon-exports")).expanduser()
 EXPORT_MAX_ROWS = int(os.environ.get("HORIZON_EXPORT_MAX_ROWS", "5000"))
+
+# A snapshot younger than this is reused rather than re-fetched.
+SNAPSHOT_MAX_AGE = int(os.environ.get("HORIZON_SNAPSHOT_MAX_AGE", "300"))

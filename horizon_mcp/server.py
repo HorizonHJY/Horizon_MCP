@@ -16,7 +16,7 @@ from __future__ import annotations
 from mcp.server.mcpserver import MCPServer
 from mcp.server.mcpserver.exceptions import ToolError
 
-from . import config, db
+from . import db, snapshot
 from .tools.export import export_table
 from .tools.status import db_status as _db_status
 
@@ -25,17 +25,27 @@ mcp = MCPServer(
     instructions=(
         "Tools for the Arch Bay server. The database is opened read-only; the "
         "`user` and `session` tables are never exported. Call list_tables "
-        "before export_data if you are unsure of a table name."
+        "before export_data if you are unsure of a table name. When the data "
+        "comes from a snapshot, db_status says how old it is; call "
+        "refresh_data if the user wants the very latest."
     ),
 )
+
+# Failures the agent can act on go back as text. Anything else stays a crash:
+# the SDK hides the traceback from the model and logs it, which is right.
+_ANTICIPATED = (db.DeniedTable, db.UnknownTable, snapshot.SnapshotError, ValueError, FileNotFoundError)
 
 
 @mcp.tool()
 def db_status() -> dict:
-    """Check the site database is reachable and summarise it: file size,
-    last modified, table count, total rows, and where exports will go.
-    Use this first to prove the connection works."""
-    return _db_status()
+    """Check the site database is reachable and summarise it: where it comes
+    from (local file, or a snapshot pulled over SSH and how old), file size,
+    table count, total rows, and where exports will go. Use this first to
+    prove the connection works."""
+    try:
+        return _db_status()
+    except _ANTICIPATED as e:
+        raise ToolError(str(e)) from e
 
 
 @mcp.tool()
@@ -43,12 +53,12 @@ def list_tables() -> list[dict]:
     """Every exportable table with its row count and, where it has one, the
     column a date range would filter on. Credential tables are omitted."""
     try:
-        with db.connect(config.DB_PATH) as conn:
+        with db.connect(snapshot.ensure_db()) as conn:
             return [
                 {"table": t.name, "rows": t.rows, "time_column": t.time_column}
                 for t in db.list_tables(conn)
             ]
-    except FileNotFoundError as e:
+    except _ANTICIPATED as e:
         raise ToolError(str(e)) from e
 
 
@@ -73,13 +83,23 @@ def export_data(
     `truncated` flag — tell the user those before sending a large file.
     The `user` and `session` tables are refused.
     """
-    # Anticipated failures go back to the agent as text it can act on. Anything
-    # else is a crash and stays a crash: the SDK hides the traceback from the
-    # model and logs it, which is right — a stack trace is not an answer.
     try:
         return export_table(table, format, since, until, limit)
-    except (db.DeniedTable, db.UnknownTable, ValueError, FileNotFoundError) as e:
+    except _ANTICIPATED as e:
         raise ToolError(str(e)) from e
+
+
+@mcp.tool()
+def refresh_data() -> dict:
+    """Pull a fresh snapshot of the database from the server right now,
+    ignoring the cached one. Only meaningful when the data comes over SSH;
+    on the server itself it is a no-op. Use when the user asks for the
+    latest numbers."""
+    try:
+        path = snapshot.ensure_db(refresh=True)
+    except _ANTICIPATED as e:
+        raise ToolError(str(e)) from e
+    return {"ok": True, "source": snapshot.source_description(), "path": str(path)}
 
 
 def main() -> None:

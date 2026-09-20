@@ -1,14 +1,17 @@
 {
-  "_comment": "MCP client entry for OpenClaw. stdio: OpenClaw launches the server as a subprocess; no port, no TLS. Adjust the key name to whatever OpenClaw's config expects for MCP servers.",
+  "_comment": "MCP client entry for OpenClaw on the Mac mini. stdio: OpenClaw launches the server as a subprocess; no port, no TLS. The env block mirrors .env — set it here so it holds regardless of OpenClaw's working directory. Adjust the top-level key name to whatever OpenClaw's config expects for MCP servers.",
   "mcpServers": {
     "horizon": {
-      "command": "/home/ec2-user/Horizon_MCP/.venv/bin/python",
+      "command": "/Users/horizon/Horizon_MCP/.venv/bin/python",
       "args": ["-m", "horizon_mcp"],
-      "cwd": "/home/ec2-user/Horizon_MCP",
+      "cwd": "/Users/horizon/Horizon_MCP",
       "env": {
-        "HORIZON_DB_PATH": "/home/ec2-user/Horisation/_data/market.db",
-        "HORIZON_EXPORT_DIR": "/home/ec2-user/horizon-exports",
-        "HORIZON_EXPORT_MAX_ROWS": "5000"
+        "HORIZON_DB_SSH": "archbay:/home/ec2-user/Horisation/_data/market.db",
+        "HORIZON_DB_PATH": "/Users/horizon/horizon-exports/market.snapshot.db",
+        "HORIZON_SNAPSHOT_MAX_AGE": "300",
+        "HORIZON_EXPORT_DIR": "/Users/horizon/horizon-exports",
+        "HORIZON_EXPORT_MAX_ROWS": "5000",
+        "HOME": "/Users/horizon"
       }
     }
   }
